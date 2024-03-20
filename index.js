@@ -3,27 +3,32 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 8081;
 
-app.get('/', async (req, res) => {
-  const username = req.query.username || 'myogeshchavan97';
+// Endpoint to translate text
+app.post('/translate', async (req, res) => {
+  const { text, target_lang, source_lang, glossary_id } = req.body;
   try {
-    const result = await axios.get(
-      `https://api.github.com/users/${username}/repos`
+    const result = await axios.post(
+      'https://api.deepl.com/v2/translate',
+      {
+        text,
+        target_lang,
+        source_lang,
+        glossary_id
+      },
+      {
+        headers: {
+          'Authorization': 'DeepL-Auth-Key 5555555555555555555555555555555555',
+          'Content-Type': 'application/json'
+        }
+      }
     );
-    const repos = result.data
-      .map((repo) => ({
-        name: repo.name,
-        url: repo.html_url,
-        description: repo.description,
-        stars: repo.stargazers_count
-      }))
-      .sort((a, b) => b.stars - a.stars);
-
-    res.send(repos);
+    res.send(result.data);
   } catch (error) {
-    res.status(400).send('Error while getting list of repositories');
+    console.error('Error while translating text:', error);
+    res.status(500).send('Error while translating text');
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`server started on port ${PORT}`);
+  console.log(`Server started on port ${PORT}`);
 });
